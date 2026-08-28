@@ -1,0 +1,35 @@
+{
+  "persons": [
+    {
+      "name": "Arto Hellas",
+      "number": "555-123456",
+      "id": "1"
+    },
+    {
+      "name": "Ada Lovelace",
+      "number": "39-44-5323523",
+      "id": "2"
+    },
+    {
+      "name": "Dan Abramov",
+      "number": "12-43-234345",
+      "id": "3"
+    },
+    {
+      "name": "Mary Poppendieck",
+      "number": "39-23-6423122",
+      "id": "4"
+    },
+    {
+      "name": "Test User",
+      "number": "12345",
+      "id": "QgvV6UZe5G4"
+    },
+    {
+      "name": "Alona",
+      "number": "44444444",
+      "id": "qcgeVnYeqgg"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}
