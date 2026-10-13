@@ -165,6 +165,13 @@ const App = () => {
           setNotificationMessage(null)
         }, 5000)
   })
+    .catch(error => {
+    setErrorMessage(error.response?.data?.error || 'Failed to add person')
+
+    setTimeout(() => {
+      setErrorMessage(null)
+    }, 5000)
+  })
 }
 
   const removePerson = (person) => {
