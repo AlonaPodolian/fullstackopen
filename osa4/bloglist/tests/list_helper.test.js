@@ -40,3 +40,29 @@ test('of a bigger list is calculated right', () => {
   assert.strictEqual(result, 18)
 })
 })
+
+describe('favorite blog', () => {
+  test('when list has only one blog, returns that blog', () => {
+    const blogs = [
+      {
+        title: 'My first blog',
+        author: 'Alona',
+        url: 'https://example.com',
+        likes: 5
+      }
+    ]
+
+    const result = listHelper.favoriteBlog(blogs)
+    assert.deepStrictEqual(result, blogs[0])
+  })
+  test('returns the blog with most likes', () => {
+  const blogs = [
+    { title: 'First blog', likes: 5 },
+    { title: 'Second blog', likes: 12 },
+    { title: 'Third blog', likes: 3 }
+  ]
+
+  const result = listHelper.favoriteBlog(blogs)
+  assert.deepStrictEqual(result, blogs[1])
+})
+})
