@@ -101,3 +101,26 @@ describe('most blogs', () => {
   })
 })
 })
+
+describe('most likes', () => {
+  test('of empty list is null', () => {
+    const blogs = []
+
+    const result = listHelper.mostLikes(blogs)
+    assert.strictEqual(result, null)
+  })
+  test('returns the author with most total likes', () => {
+  const blogs = [
+    { author: 'Anna', likes: 5 },
+    { author: 'Robert', likes: 8 },
+    { author: 'Anna', likes: 7 }
+  ]
+
+  const result = listHelper.mostLikes(blogs)
+
+  assert.deepStrictEqual(result, {
+    author: 'Anna',
+    likes: 12
+  })
+})
+})
