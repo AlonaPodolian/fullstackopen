@@ -50,6 +50,25 @@ test('blog has id instead of _id', async () => {
   assert.strictEqual(blog._id, undefined)
 })
 
+test('a new blog can be added', async () => {
+  const newBlog = {
+    title: 'New test blog',
+    author: 'Maria',
+    url: 'https://example.com/new',
+    likes: 7
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const response = await api.get('/api/blogs')
+
+  assert.strictEqual(response.body.length, initialBlogs.length + 1)
+})
+
 after(async () => {
   await mongoose.connection.close()
 })
