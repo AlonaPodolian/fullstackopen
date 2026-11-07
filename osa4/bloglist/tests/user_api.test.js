@@ -65,6 +65,6 @@ test('username must be unique', async () => {
 
   assert.match(response.body.error, /unique/)
 
-  const usersAtEnd = await User.find({})
+  const usersAtEnd = await User.find({ username: 'testuser' })
 assert.strictEqual(usersAtEnd.length, 1)
 })

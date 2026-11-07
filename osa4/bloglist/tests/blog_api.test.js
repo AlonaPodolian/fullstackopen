@@ -5,6 +5,7 @@ const supertest = require('supertest')
 
 const app = require('../app')
 const Blog = require('../models/blog')
+const User = require('../models/user')
 
 const api = supertest(app)
 
@@ -26,6 +27,18 @@ const initialBlogs = [
 beforeEach(async () => {
   await Blog.deleteMany({})
   await Blog.insertMany(initialBlogs)
+
+  const users = await User.find({})
+
+  if (users.length === 0) {
+    const user = new User({
+      username: 'blogtestuser',
+      name: 'Blog Test User',
+      passwordHash: 'testhash'
+    })
+
+    await user.save()
+  }
 })
 
 test('blogs are returned as JSON', async () => {
