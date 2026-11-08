@@ -13,10 +13,7 @@ blogsRouter.get('/', async (request, response) => {
 
 blogsRouter.post('/', async (request, response) => {
   const { title, url } = request.body
-  const authorization = request.get('authorization')
-const token = authorization && authorization.startsWith('Bearer ')
-  ? authorization.substring(7)
-  : null
+  const token = request.token
 
   if (!token) {
   return response.status(401).json({
@@ -47,7 +44,7 @@ if (!decodedToken.id) {
   }
 
   const user = await User.findById(decodedToken.id)
-  
+
   if (!user) {
   return response.status(401).json({
     error: 'user not found'
