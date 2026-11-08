@@ -6,8 +6,10 @@ const supertest = require('supertest')
 const app = require('../app')
 const Blog = require('../models/blog')
 const User = require('../models/user')
+const jwt = require('jsonwebtoken')
 
 const api = supertest(app)
+let token
 
 const initialBlogs = [
   {
@@ -28,9 +30,9 @@ beforeEach(async () => {
   await Blog.deleteMany({})
   await Blog.insertMany(initialBlogs)
 
-  const users = await User.find({})
+  const existingUser = await User.findOne({ username: 'blogtestuser' })
 
-  if (users.length === 0) {
+if (!existingUser) {
     const user = new User({
       username: 'blogtestuser',
       name: 'Blog Test User',
@@ -39,6 +41,12 @@ beforeEach(async () => {
 
     await user.save()
   }
+  const user = await User.findOne({ username: 'blogtestuser' })
+
+token = jwt.sign(
+  { username: user.username, id: user._id },
+  process.env.SECRET
+)
 })
 
 test('blogs are returned as JSON', async () => {
@@ -73,6 +81,7 @@ test('a new blog can be added', async () => {
 
   await api
     .post('/api/blogs')
+    .set('Authorization', `Bearer ${token}`)
     .send(newBlog)
     .expect(201)
     .expect('Content-Type', /application\/json/)
@@ -91,6 +100,7 @@ test('likes defaults to zero if missing', async () => {
 
   const response = await api
     .post('/api/blogs')
+    .set('Authorization', `Bearer ${token}`)
     .send(newBlog)
     .expect(201)
 
@@ -106,6 +116,7 @@ test('blog without title returns 400', async () => {
 
   await api
     .post('/api/blogs')
+    .set('Authorization', `Bearer ${token}`)
     .send(newBlog)
     .expect(400)
 })
@@ -119,8 +130,36 @@ test('blog without url returns 400', async () => {
 
   await api
     .post('/api/blogs')
+    .set('Authorization', `Bearer ${token}`)
     .send(newBlog)
     .expect(400)
+})
+
+test('blog cannot be added without token', async () => {
+  const newBlog = {
+    title: 'Blog without token',
+    author: 'Anna',
+    url: 'https://example.com/no-token'
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(401)
+})
+
+test('blog cannot be added with invalid token', async () => {
+  const newBlog = {
+    title: 'Blog with invalid token',
+    author: 'Anna',
+    url: 'https://example.com/invalid-token'
+  }
+
+  await api
+    .post('/api/blogs')
+    .set('Authorization', 'Bearer invalidtoken')
+    .send(newBlog)
+    .expect(401)
 })
 
 test('a blog can be deleted', async () => {
