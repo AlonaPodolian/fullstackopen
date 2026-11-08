@@ -165,9 +165,13 @@ test('blog cannot be added with invalid token', async () => {
 test('a blog can be deleted', async () => {
   const blogsAtStart = await Blog.find({})
   const blogToDelete = blogsAtStart[0]
+  const user = await User.findOne({ username: 'blogtestuser' })
+  blogToDelete.user = user._id
+  await blogToDelete.save()
 
   await api
     .delete(`/api/blogs/${blogToDelete.id}`)
+    .set('Authorization', `Bearer ${token}`)
     .expect(204)
 
   const blogsAtEnd = await Blog.find({})
