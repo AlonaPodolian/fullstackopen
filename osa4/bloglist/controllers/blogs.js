@@ -1,7 +1,6 @@
 const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
-const User = require('../models/user')
-const jwt = require('jsonwebtoken')
+const { userExtractor } = require('../utils/middleware')
 
 blogsRouter.get('/', async (request, response) => {
   const blogs = await Blog
@@ -10,32 +9,9 @@ blogsRouter.get('/', async (request, response) => {
 
   response.json(blogs)
 })
-
-blogsRouter.post('/', async (request, response) => {
+blogsRouter.post('/', userExtractor, async (request, response) => {
   const { title, url } = request.body
-  const token = request.token
-
-  if (!token) {
-  return response.status(401).json({
-    error: 'token missing'
-  })
-}
-
-let decodedToken
-
-try {
-  decodedToken = jwt.verify(token, process.env.SECRET)
-} catch (error) {
-  return response.status(401).json({
-    error: 'invalid token'
-  })
-}
-
-if (!decodedToken.id) {
-  return response.status(401).json({
-    error: 'token invalid'
-  })
-}
+  const user = request.user
 
   if (!title || !url) {
     return response.status(400).json({
@@ -43,18 +19,10 @@ if (!decodedToken.id) {
     })
   }
 
-  const user = await User.findById(decodedToken.id)
-
-  if (!user) {
-  return response.status(401).json({
-    error: 'user not found'
-  })
-}
-
   const blog = new Blog({
-  ...request.body,
-  user: user._id
-})
+    ...request.body,
+    user: user._id
+  })
 
   const savedBlog = await blog.save()
 
@@ -64,7 +32,7 @@ if (!decodedToken.id) {
   response.status(201).json(savedBlog)
 })
 
-blogsRouter.delete('/:id', async (request, response) => {
+blogsRouter.delete('/:id', userExtractor, async (request, response) => {
   const blog = await Blog.findById(request.params.id)
 
   if (!blog) {
@@ -73,27 +41,9 @@ blogsRouter.delete('/:id', async (request, response) => {
     })
   }
 
-  if (!request.token) {
-    return response.status(401).json({
-      error: 'token missing'
-    })
-  }
+  const user = request.user
 
-  let decodedToken
-
-  try {
-    decodedToken = jwt.verify(request.token, process.env.SECRET)
-  } catch (error) {
-    return response.status(401).json({
-      error: 'invalid token'
-    })
-  }
-
-  if (
-    !decodedToken.id ||
-    !blog.user ||
-    blog.user.toString() !== decodedToken.id.toString()
-  ) {
+  if (!blog.user || blog.user.toString() !== user._id.toString()) {
     return response.status(403).json({
       error: 'only the creator can delete this blog'
     })
