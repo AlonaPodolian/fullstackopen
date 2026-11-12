@@ -55,7 +55,8 @@ const handleLogout = () => {
 
 const addBlog = async (blogObject) => {
   const returnedBlog = await blogService.create(blogObject)
-  setBlogs(blogs.concat(returnedBlog))
+  const blogWithUser = { ...returnedBlog, user }
+  setBlogs(blogs.concat(blogWithUser))
 
   setSuccessMessage(
     `A new blog "${returnedBlog.title}" by ${returnedBlog.author} was added`
@@ -81,6 +82,18 @@ const likeBlog = async (blog) => {
   setBlogs(blogs.map(currentBlog =>
     currentBlog.id === blog.id ? updatedBlog : currentBlog
   ))
+}
+
+const deleteBlog = async (blog) => {
+  const confirmed = window.confirm(
+    `Remove blog "${blog.title}" by ${blog.author}?`
+  )
+
+  if (!confirmed) return
+
+  await blogService.remove(blog.id)
+
+  setBlogs(blogs.filter(currentBlog => currentBlog.id !== blog.id))
 }
 
 const loginForm = () => (
@@ -136,7 +149,13 @@ const loginForm = () => (
         {[...blogs]
           .sort((a, b) => b.likes - a.likes)
           .map(blog =>
-            <Blog key={blog.id} blog={blog} likeBlog={likeBlog} />
+            <Blog
+              key={blog.id}
+              blog={blog}
+              likeBlog={likeBlog}
+              deleteBlog={deleteBlog}
+              currentUser={user}
+            />
           )}
       </>
     )}

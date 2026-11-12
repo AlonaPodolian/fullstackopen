@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-const Blog = ({ blog, likeBlog }) => {
+const Blog = ({ blog, likeBlog, deleteBlog, currentUser }) => {
   const [detailsVisible, setDetailsVisible] = useState(false)
 
   const blogStyle = {
@@ -26,6 +26,10 @@ const Blog = ({ blog, likeBlog }) => {
           <div>{blog.likes} likes</div>
           <button onClick={() => likeBlog(blog)}>like</button>
           <div>{blog.user?.name}</div>
+
+          {currentUser && blog.user?.username === currentUser.username && (
+            <button onClick={() => deleteBlog(blog)}>remove</button>
+          )}
         </div>
       )}
     </div>
