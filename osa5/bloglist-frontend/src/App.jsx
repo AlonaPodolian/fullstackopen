@@ -15,11 +15,12 @@ const App = () => {
   author: '',
   url: ''
 })
+  const [blogFormVisible, setBlogFormVisible] = useState(false)
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
       setBlogs( blogs )
-    )
+   )
   }, [])
 
   useEffect(() => {
@@ -79,6 +80,8 @@ const addBlog = async (event) => {
     author: '',
     url: ''
   })
+
+  setBlogFormVisible(false)
 }
 
 const loginForm = () => (
@@ -159,8 +162,15 @@ const blogForm = () => (
         )}
         <p>{user.name} logged in</p>
         <button onClick={handleLogout}>logout</button>
-        <h3>Add a blog</h3>
-        {blogForm()}
+                {blogFormVisible ? (
+          <>
+            <h3>Add a blog</h3>
+            {blogForm()}
+            <button onClick={() => setBlogFormVisible(false)}>cancel</button>
+          </>
+        ) : (
+          <button onClick={() => setBlogFormVisible(true)}>create new blog</button>
+        )}
         {blogs.map(blog =>
           <Blog key={blog.id} blog={blog} />
         )}
