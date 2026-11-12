@@ -133,9 +133,11 @@ const loginForm = () => (
         ) : (
           <button onClick={() => setBlogFormVisible(true)}>create new blog</button>
         )}
-        {blogs.map(blog =>
-          <Blog key={blog.id} blog={blog} likeBlog={likeBlog} />
-        )}
+        {[...blogs]
+          .sort((a, b) => b.likes - a.likes)
+          .map(blog =>
+            <Blog key={blog.id} blog={blog} likeBlog={likeBlog} />
+          )}
       </>
     )}
   </div>
