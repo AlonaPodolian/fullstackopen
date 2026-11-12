@@ -65,6 +65,24 @@ const addBlog = async (blogObject) => {
   setBlogFormVisible(false)
 }
 
+const likeBlog = async (blog) => {
+  const updatedBlog = {
+    ...blog,
+    likes: blog.likes + 1
+  }
+
+  const blogToUpdate = {
+    ...updatedBlog,
+    user: blog.user?.id
+  }
+
+  await blogService.update(blog.id, blogToUpdate)
+
+  setBlogs(blogs.map(currentBlog =>
+    currentBlog.id === blog.id ? updatedBlog : currentBlog
+  ))
+}
+
 const loginForm = () => (
   <form onSubmit={handleLogin}>
     <div>
@@ -116,7 +134,7 @@ const loginForm = () => (
           <button onClick={() => setBlogFormVisible(true)}>create new blog</button>
         )}
         {blogs.map(blog =>
-          <Blog key={blog.id} blog={blog} />
+          <Blog key={blog.id} blog={blog} likeBlog={likeBlog} />
         )}
       </>
     )}
