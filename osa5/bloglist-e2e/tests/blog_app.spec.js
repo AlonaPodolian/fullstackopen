@@ -67,5 +67,26 @@ describe('Blog app', () => {
 
   await expect(page.getByText('1 likes')).toBeVisible()
   })
+
+  test('a blog can be deleted by its creator', async ({ page }) => {
+  await page.getByRole('button', { name: 'create new blog' }).click()
+
+  await page.getByLabel('title').fill('Playwright delete test')
+  await page.getByLabel('author').fill('Alona')
+  await page.getByLabel('url').fill('https://example.com/playwright-delete-test')
+
+  await page.getByRole('button', { name: 'create' }).click()
+  await page.getByRole('button', { name: 'view' }).click()
+
+  await expect(page.getByRole('button', { name: 'remove' })).toBeVisible()
+
+  page.once('dialog', async dialog => {
+    await dialog.accept()
+  })
+
+  await page.getByRole('button', { name: 'remove' }).click()
+
+  await expect(page.getByRole('button', { name: 'remove' })).toHaveCount(0)
+})
 })
 })
