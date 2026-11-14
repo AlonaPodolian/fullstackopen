@@ -36,3 +36,26 @@ test('shows blog details after clicking view', async () => {
   expect(screen.getByText('5 likes')).toBeDefined()
   expect(screen.getByText(blog.user.name)).toBeDefined()
 })
+
+test('calls likeBlog twice when like button is clicked twice', async () => {
+  const blog = {
+    title: 'Frontend testing blog',
+    author: 'Alona',
+    url: 'https://example.com/frontend-testing',
+    likes: 5,
+    user: { name: 'Alona' }
+  }
+
+  const mockHandler = vi.fn()
+  const user = userEvent.setup()
+
+  render(<Blog blog={blog} likeBlog={mockHandler} />)
+
+  await user.click(screen.getByText('view'))
+
+  const likeButton = screen.getByText('like')
+  await user.click(likeButton)
+  await user.click(likeButton)
+
+  expect(mockHandler.mock.calls).toHaveLength(2)
+})
