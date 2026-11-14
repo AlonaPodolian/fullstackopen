@@ -3,11 +3,15 @@ import Blog from './components/Blog'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import BlogForm from './components/BlogForm'
-import { Link, Routes, Route, useNavigate } from 'react-router-dom'
+import { Link, Routes, Route, useNavigate, useMatch } from 'react-router-dom'
 
 const App = () => {
   const navigate = useNavigate()
   const [blogs, setBlogs] = useState([])
+  const blogMatch = useMatch('/blogs/:id')
+  const selectedBlog = blogMatch
+    ? blogs.find(blog => blog.id === blogMatch.params.id)
+    : null
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
@@ -42,7 +46,6 @@ const App = () => {
       )
       blogService.setToken(loggedUser.token)
       setUser(loggedUser)
-      navigate('/')
       setUsername('')
       setPassword('')
       navigate('/')
@@ -55,6 +58,7 @@ const App = () => {
   const handleLogout = () => {
     window.localStorage.removeItem('loggedBloglistUser')
     setUser(null)
+    navigate('/')
   }
 
   const addBlog = async (blogObject) => {
@@ -148,19 +152,43 @@ const App = () => {
         )
       )}
 
-      {[...blogs]
-        .sort((a, b) => b.likes - a.likes)
-        .map(blog => (
-          <Blog
-            key={blog.id}
-            blog={blog}
-            likeBlog={likeBlog}
-            deleteBlog={deleteBlog}
-            currentUser={user}
-          />
-        ))}
+      <ul>
+        {[...blogs]
+          .sort((a, b) => b.likes - a.likes)
+          .map(blog => (
+            <li key={blog.id}>
+              <Blog blog={blog} />
+            </li>
+          ))}
+      </ul>
     </>
   )
+
+  const blogView = () => {
+    if (!selectedBlog) {
+      return null
+    }
+
+    return (
+      <div>
+        <h2>{selectedBlog.author}: {selectedBlog.title}</h2>
+        <div>
+          <a href={selectedBlog.url}>{selectedBlog.url}</a>
+        </div>
+        <div>{selectedBlog.likes} likes</div>
+
+        {user && (
+          <button onClick={() => likeBlog(selectedBlog)}>like</button>
+        )}
+
+        <div>Added by {selectedBlog.user?.name}</div>
+
+        {user && selectedBlog.user?.username === user.username && (
+          <button onClick={() => deleteBlog(selectedBlog)}>remove</button>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -175,6 +203,7 @@ const App = () => {
 
       <Routes>
         <Route path="/" element={blogList()} />
+        <Route path="/blogs/:id" element={blogView()} />
         <Route
           path="/login"
           element={
