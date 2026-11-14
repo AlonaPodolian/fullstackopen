@@ -145,7 +145,9 @@ const App = () => {
           .sort((a, b) => b.likes - a.likes)
           .map(blog => (
             <li key={blog.id}>
-              <Blog blog={blog} />
+              <Link to={`/blogs/${blog.id}`}>
+                {blog.title} by {blog.author}
+              </Link>
             </li>
           ))}
       </ul>
@@ -158,23 +160,12 @@ const App = () => {
     }
 
     return (
-      <div>
-        <h2>{selectedBlog.author}: {selectedBlog.title}</h2>
-        <div>
-          <a href={selectedBlog.url}>{selectedBlog.url}</a>
-        </div>
-        <div>{selectedBlog.likes} likes</div>
-
-        {user && (
-          <button onClick={() => likeBlog(selectedBlog)}>like</button>
-        )}
-
-        <div>Added by {selectedBlog.user?.name}</div>
-
-        {user && selectedBlog.user?.username === user.username && (
-          <button onClick={() => deleteBlog(selectedBlog)}>remove</button>
-        )}
-      </div>
+      <Blog
+        blog={selectedBlog}
+        likeBlog={likeBlog}
+        deleteBlog={deleteBlog}
+        currentUser={user}
+      />
     )
   }
 

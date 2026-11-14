@@ -1,61 +1,66 @@
-import userEvent from '@testing-library/user-event'
+import { expect, test, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import Blog from './Blog'
 
-test('renders blog title and author, but hides details by default', () => {
-  const blog = {
-    title: 'Frontend testing blog',
-    author: 'Alona',
-    url: 'https://example.com/frontend-testing',
-    likes: 5,
-    user: { name: 'Alona' }
+const blog = {
+  title: 'Frontend testing blog',
+  author: 'Alona',
+  url: 'https://example.com/frontend-testing',
+  likes: 5,
+  user: {
+    name: 'Alona',
+    username: 'alona'
   }
+}
 
-  render(<Blog blog={blog} />)
+test('a logged-out user sees blog details but no buttons', () => {
+  render(<Blog blog={blog} currentUser={null} />)
 
-  expect(screen.getByText('Frontend testing blog Alona')).toBeDefined()
-  expect(screen.queryByText(blog.url)).toBeNull()
-  expect(screen.queryByText('5 likes')).toBeNull()
-})
-
-test('shows blog details after clicking view', async () => {
-  const blog = {
-    title: 'Frontend testing blog',
-    author: 'Alona',
-    url: 'https://example.com/frontend-testing',
-    likes: 5,
-    user: { name: 'Alona' }
-  }
-
-  const user = userEvent.setup()
-  render(<Blog blog={blog} />)
-
-  await user.click(screen.getByText('view'))
-
+  expect(
+    screen.getByRole('heading', { name: 'Alona: Frontend testing blog' })
+  ).toBeDefined()
   expect(screen.getByText(blog.url)).toBeDefined()
   expect(screen.getByText('5 likes')).toBeDefined()
-  expect(screen.getByText(blog.user.name)).toBeDefined()
+  expect(screen.getByText('Added by Alona')).toBeDefined()
+
+  expect(screen.queryByRole('button', { name: 'like' })).toBeNull()
+  expect(screen.queryByRole('button', { name: 'remove' })).toBeNull()
 })
 
-test('calls likeBlog twice when like button is clicked twice', async () => {
-  const blog = {
-    title: 'Frontend testing blog',
-    author: 'Alona',
-    url: 'https://example.com/frontend-testing',
-    likes: 5,
-    user: { name: 'Alona' }
+test('a logged-in user who did not add the blog sees only the like button', () => {
+  const currentUser = {
+    name: 'Another User',
+    username: 'another'
   }
 
-  const mockHandler = vi.fn()
-  const user = userEvent.setup()
+  render(
+    <Blog
+      blog={blog}
+      currentUser={currentUser}
+      likeBlog={vi.fn()}
+      deleteBlog={vi.fn()}
+    />
+  )
 
-  render(<Blog blog={blog} likeBlog={mockHandler} />)
+  expect(screen.getByRole('button', { name: 'like' })).toBeDefined()
+  expect(screen.queryByRole('button', { name: 'remove' })).toBeNull()
+})
 
-  await user.click(screen.getByText('view'))
+test('the user who added the blog sees like and remove buttons', () => {
+  const currentUser = {
+    name: 'Alona',
+    username: 'alona'
+  }
 
-  const likeButton = screen.getByText('like')
-  await user.click(likeButton)
-  await user.click(likeButton)
+  render(
+    <Blog
+      blog={blog}
+      currentUser={currentUser}
+      likeBlog={vi.fn()}
+      deleteBlog={vi.fn()}
+    />
+  )
 
-  expect(mockHandler.mock.calls).toHaveLength(2)
+  expect(screen.getByRole('button', { name: 'like' })).toBeDefined()
+  expect(screen.getByRole('button', { name: 'remove' })).toBeDefined()
 })
