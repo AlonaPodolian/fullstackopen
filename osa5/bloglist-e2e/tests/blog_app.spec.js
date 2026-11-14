@@ -114,5 +114,30 @@ describe('Blog app', () => {
   await page.getByRole('button', { name: 'view' }).click()
   await expect(page.getByRole('button', { name: 'remove' })).toHaveCount(0)
 })
+
+  test('blogs are ordered by likes', async ({ page }) => {
+  await page.getByRole('button', { name: 'create new blog' }).click()
+  await page.getByLabel('title').fill('Playwright most liked')
+  await page.getByLabel('author').fill('Alona')
+  await page.getByLabel('url').fill('https://example.com/most-liked')
+  await page.getByRole('button', { name: 'create' }).click()
+
+  await page.getByRole('button', { name: 'view' }).click()
+  await page.getByRole('button', { name: 'like' }).click()
+  await page.getByRole('button', { name: 'hide' }).click()
+
+  await page.getByRole('button', { name: 'create new blog' }).click()
+  await page.getByLabel('title').fill('Playwright less liked')
+  await page.getByLabel('author').fill('Alona')
+  await page.getByLabel('url').fill('https://example.com/less-liked')
+  await page.getByRole('button', { name: 'create' }).click()
+
+  const viewButtons = page.getByRole('button', { name: 'view' })
+  const firstBlog = viewButtons.nth(0).locator('xpath=..')
+  const secondBlog = viewButtons.nth(1).locator('xpath=..')
+
+  await expect(firstBlog).toContainText('Playwright most liked')
+  await expect(secondBlog).toContainText('Playwright less liked')
+})
 })
 })
