@@ -17,7 +17,6 @@ const App = () => {
   const [user, setUser] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
-  const [blogFormVisible, setBlogFormVisible] = useState(false)
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
@@ -71,7 +70,7 @@ const App = () => {
     )
     setTimeout(() => setSuccessMessage(null), 5000)
 
-    setBlogFormVisible(false)
+    navigate('/')
   }
 
   const likeBlog = async (blog) => {
@@ -102,6 +101,8 @@ const App = () => {
     await blogService.remove(blog.id)
 
     setBlogs(blogs.filter(currentBlog => currentBlog.id !== blog.id))
+
+    navigate('/')
   }
 
   const loginForm = () => (
@@ -137,19 +138,6 @@ const App = () => {
 
       {successMessage && (
         <p style={{ color: 'green' }}>{successMessage}</p>
-      )}
-
-      {user && (
-        blogFormVisible ? (
-          <>
-            <BlogForm createBlog={addBlog} />
-            <button onClick={() => setBlogFormVisible(false)}>cancel</button>
-          </>
-        ) : (
-          <button onClick={() => setBlogFormVisible(true)}>
-            create new blog
-          </button>
-        )
       )}
 
       <ul>
@@ -197,13 +185,20 @@ const App = () => {
         {user === null ? (
           <Link to="/login">login</Link>
         ) : (
-          <button onClick={handleLogout}>logout</button>
+          <>
+            <Link to="/create">new blog</Link>{' '}
+            <button onClick={handleLogout}>logout</button>
+          </>
         )}
       </nav>
 
       <Routes>
         <Route path="/" element={blogList()} />
         <Route path="/blogs/:id" element={blogView()} />
+        <Route
+          path="/create"
+          element={<BlogForm createBlog={addBlog} />}
+        />
         <Route
           path="/login"
           element={
