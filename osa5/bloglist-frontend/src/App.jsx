@@ -3,8 +3,10 @@ import Blog from './components/Blog'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import BlogForm from './components/BlogForm'
+import { Link, Routes, Route, useNavigate } from 'react-router-dom'
 
 const App = () => {
+  const navigate = useNavigate()
   const [blogs, setBlogs] = useState([])
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -40,8 +42,10 @@ const App = () => {
       )
       blogService.setToken(loggedUser.token)
       setUser(loggedUser)
+      navigate('/')
       setUsername('')
       setPassword('')
+      navigate('/')
     } catch {
       setErrorMessage('wrong username or password')
       setTimeout(() => setErrorMessage(null), 5000)
@@ -122,43 +126,68 @@ const App = () => {
     </form>
   )
 
+  const blogList = () => (
+    <>
+      <h2>blogs</h2>
+      {user && <p>{user.name} logged in</p>}
+
+      {successMessage && (
+        <p style={{ color: 'green' }}>{successMessage}</p>
+      )}
+
+      {user && (
+        blogFormVisible ? (
+          <>
+            <BlogForm createBlog={addBlog} />
+            <button onClick={() => setBlogFormVisible(false)}>cancel</button>
+          </>
+        ) : (
+          <button onClick={() => setBlogFormVisible(true)}>
+            create new blog
+          </button>
+        )
+      )}
+
+      {[...blogs]
+        .sort((a, b) => b.likes - a.likes)
+        .map(blog => (
+          <Blog
+            key={blog.id}
+            blog={blog}
+            likeBlog={likeBlog}
+            deleteBlog={deleteBlog}
+            currentUser={user}
+          />
+        ))}
+    </>
+  )
+
   return (
     <div>
-      {user === null ? (
-        <>
-          <h2>log in to application</h2>
-          {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
-          {loginForm()}
-        </>
-      ) : (
-        <>
-          <h2>blogs</h2>
-          {successMessage && (
-            <p style={{ color: 'green' }}>{successMessage}</p>
-          )}
-          <p>{user.name} logged in</p>
+      <nav>
+        <Link to="/">blogs</Link>{' '}
+        {user === null ? (
+          <Link to="/login">login</Link>
+        ) : (
           <button onClick={handleLogout}>logout</button>
-          {blogFormVisible ? (
+        )}
+      </nav>
+
+      <Routes>
+        <Route path="/" element={blogList()} />
+        <Route
+          path="/login"
+          element={
             <>
-              <BlogForm createBlog={addBlog} />
-              <button onClick={() => setBlogFormVisible(false)}>cancel</button>
+              <h2>log in to application</h2>
+              {errorMessage && (
+                <p style={{ color: 'red' }}>{errorMessage}</p>
+              )}
+              {loginForm()}
             </>
-          ) : (
-            <button onClick={() => setBlogFormVisible(true)}>create new blog</button>
-          )}
-          {[...blogs]
-            .sort((a, b) => b.likes - a.likes)
-            .map(blog =>
-              <Blog
-                key={blog.id}
-                blog={blog}
-                likeBlog={likeBlog}
-                deleteBlog={deleteBlog}
-                currentUser={user}
-              />
-            )}
-        </>
-      )}
+          }
+        />
+      </Routes>
     </div>
   )
 
