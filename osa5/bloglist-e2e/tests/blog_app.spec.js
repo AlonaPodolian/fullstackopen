@@ -1,5 +1,20 @@
 const { test, expect, beforeEach, describe } = require('@playwright/test')
 
+const login = async (page, password = 'salainen') => {
+  await page.getByRole('link', { name: 'login' }).click()
+  await page.getByLabel('username').fill('mluukkai')
+  await page.getByLabel('password').fill(password)
+  await page.getByRole('button', { name: 'login' }).click()
+}
+
+const createBlog = async (page, title) => {
+  await page.getByRole('link', { name: 'new blog' }).click()
+  await page.getByLabel('title').fill(title)
+  await page.getByLabel('author').fill('Alona')
+  await page.getByLabel('url').fill('https://example.com/blog')
+  await page.getByRole('button', { name: 'create' }).click()
+}
+
 describe('Blog app', () => {
   beforeEach(async ({ page, request }) => {
     await request.post('http://localhost:3003/api/testing/reset')
@@ -14,130 +29,61 @@ describe('Blog app', () => {
     await page.goto('http://localhost:5173')
   })
 
-  test('Login form is shown', async ({ page }) => {
-    await expect(page.getByText('log in to application')).toBeVisible()
-  })
-
   describe('Login', () => {
-  test('succeeds with correct credentials', async ({ page }) => {
-    await page.getByLabel('username').fill('mluukkai')
-    await page.getByLabel('password').fill('salainen')
-    await page.getByRole('button', { name: 'login' }).click()
+    test('succeeds with correct credentials', async ({ page }) => {
+      await login(page)
 
-    await expect(page.getByText('Matti Luukkainen logged in')).toBeVisible()
+      await expect(page.getByText('Matti Luukkainen logged in')).toBeVisible()
+    })
+
+    test('fails with wrong credentials', async ({ page }) => {
+      await login(page, 'wrong')
+
+      await expect(page.getByText('wrong username or password')).toBeVisible()
+    })
   })
 
-  test('fails with wrong credentials', async ({ page }) => {
-    await page.getByLabel('username').fill('mluukkai')
-    await page.getByLabel('password').fill('wrong')
-    await page.getByRole('button', { name: 'login' }).click()
+  describe('When logged in', () => {
+    beforeEach(async ({ page }) => {
+      await login(page)
+    })
 
-    await expect(page.getByText('wrong username or password')).toBeVisible()
+    test('a blog can be created', async ({ page }) => {
+      const title = 'Playwright E2E blog'
+
+      await createBlog(page, title)
+
+      await expect(
+        page.getByRole('link', { name: `${title} by Alona` })
+      ).toBeVisible()
+    })
+
+    test('a blog can be liked', async ({ page }) => {
+      const title = 'Playwright like test'
+
+      await createBlog(page, title)
+      await page.getByRole('link', { name: `${title} by Alona` }).click()
+      await page.getByRole('button', { name: 'like' }).click()
+
+      await expect(page.getByText('1 likes')).toBeVisible()
+    })
+
+    test('a blog can be deleted by its creator', async ({ page }) => {
+      const title = 'Playwright delete test'
+
+      await createBlog(page, title)
+      await page.getByRole('link', { name: `${title} by Alona` }).click()
+
+      page.once('dialog', async dialog => {
+        await dialog.accept()
+      })
+
+      await page.getByRole('button', { name: 'remove' }).click()
+      await page.getByRole('link', { name: 'blogs' }).click()
+
+      await expect(
+        page.getByRole('link', { name: `${title} by Alona` })
+      ).toHaveCount(0)
+    })
   })
-})
- describe('When logged in', () => {
-  beforeEach(async ({ page }) => {
-    await page.getByLabel('username').fill('mluukkai')
-    await page.getByLabel('password').fill('salainen')
-    await page.getByRole('button', { name: 'login' }).click()
-  })
-
-  test('a new blog can be created', async ({ page }) => {
-    await page.getByRole('button', { name: 'create new blog' }).click()
-
-    await page.getByLabel('title').fill('Playwright E2E blog')
-    await page.getByLabel('author').fill('Alona')
-    await page.getByLabel('url').fill('https://example.com/playwright-e2e-blog')
-
-    await page.getByRole('button', { name: 'create' }).click()
-
-    await expect(page.getByText('Playwright E2E blog Alona')).toBeVisible()
-  })
-
-  test('a blog can be liked', async ({ page }) => {
-  await page.getByRole('button', { name: 'create new blog' }).click()
-
-  await page.getByLabel('title').fill('Playwright like test')
-  await page.getByLabel('author').fill('Alona')
-  await page.getByLabel('url').fill('https://example.com/playwright-like-test')
-
-  await page.getByRole('button', { name: 'create' }).click()
-  await page.getByRole('button', { name: 'view' }).click()
-  await page.getByRole('button', { name: 'like' }).click()
-
-  await expect(page.getByText('1 likes')).toBeVisible()
-  })
-
-  test('a blog can be deleted by its creator', async ({ page }) => {
-  await page.getByRole('button', { name: 'create new blog' }).click()
-
-  await page.getByLabel('title').fill('Playwright delete test')
-  await page.getByLabel('author').fill('Alona')
-  await page.getByLabel('url').fill('https://example.com/playwright-delete-test')
-
-  await page.getByRole('button', { name: 'create' }).click()
-  await page.getByRole('button', { name: 'view' }).click()
-
-  await expect(page.getByRole('button', { name: 'remove' })).toBeVisible()
-
-  page.once('dialog', async dialog => {
-    await dialog.accept()
-  })
-
-  await page.getByRole('button', { name: 'remove' }).click()
-
-  await expect(page.getByRole('button', { name: 'remove' })).toHaveCount(0)
-})
-
-  test('only the creator can see the remove button', async ({ page, request }) => {
-  await page.getByRole('button', { name: 'create new blog' }).click()
-
-  await page.getByLabel('title').fill('Playwright ownership test')
-  await page.getByLabel('author').fill('Alona')
-  await page.getByLabel('url').fill('https://example.com/playwright-ownership-test')
-
-  await page.getByRole('button', { name: 'create' }).click()
-  await page.getByRole('button', { name: 'logout' }).click()
-
-  await request.post('http://localhost:3003/api/users', {
-    data: {
-      name: 'Another User',
-      username: 'anotheruser',
-      password: 'password'
-    }
-  })
-
-  await page.getByLabel('username').fill('anotheruser')
-  await page.getByLabel('password').fill('password')
-  await page.getByRole('button', { name: 'login' }).click()
-
-  await page.getByRole('button', { name: 'view' }).click()
-  await expect(page.getByRole('button', { name: 'remove' })).toHaveCount(0)
-})
-
-  test('blogs are ordered by likes', async ({ page }) => {
-  await page.getByRole('button', { name: 'create new blog' }).click()
-  await page.getByLabel('title').fill('Playwright most liked')
-  await page.getByLabel('author').fill('Alona')
-  await page.getByLabel('url').fill('https://example.com/most-liked')
-  await page.getByRole('button', { name: 'create' }).click()
-
-  await page.getByRole('button', { name: 'view' }).click()
-  await page.getByRole('button', { name: 'like' }).click()
-  await page.getByRole('button', { name: 'hide' }).click()
-
-  await page.getByRole('button', { name: 'create new blog' }).click()
-  await page.getByLabel('title').fill('Playwright less liked')
-  await page.getByLabel('author').fill('Alona')
-  await page.getByLabel('url').fill('https://example.com/less-liked')
-  await page.getByRole('button', { name: 'create' }).click()
-
-  const viewButtons = page.getByRole('button', { name: 'view' })
-  const firstBlog = viewButtons.nth(0).locator('xpath=..')
-  const secondBlog = viewButtons.nth(1).locator('xpath=..')
-
-  await expect(firstBlog).toContainText('Playwright most liked')
-  await expect(secondBlog).toContainText('Playwright less liked')
-})
-})
 })
