@@ -4,6 +4,32 @@ import blogService from './services/blogs'
 import loginService from './services/login'
 import BlogForm from './components/BlogForm'
 import { Link, Routes, Route, useNavigate, useMatch } from 'react-router-dom'
+import styled from 'styled-components'
+
+const FormInput = styled.input`
+  display: block;
+  width: 250px;
+  margin: 0.5rem 0 1rem;
+  padding: 0.7rem;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  font-size: 1rem;
+`
+
+const FormButton = styled.button`
+  padding: 0.65rem 1.2rem;
+  color: white;
+  background-color: #1976d2;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #1565c0;
+  }
+`
 
 const App = () => {
   const navigate = useNavigate()
@@ -109,8 +135,8 @@ const App = () => {
     <form onSubmit={handleLogin}>
       <div>
         <label>
-        username
-          <input
+          username
+          <FormInput
             type="text"
             value={username}
             onChange={({ target }) => setUsername(target.value)}
@@ -119,15 +145,15 @@ const App = () => {
       </div>
       <div>
         <label>
-        password
-          <input
+          password
+          <FormInput
             type="password"
             value={password}
             onChange={({ target }) => setPassword(target.value)}
           />
         </label>
       </div>
-      <button type="submit">login</button>
+      <FormButton type="submit">login</FormButton>
     </form>
   )
 
