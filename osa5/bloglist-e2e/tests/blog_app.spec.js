@@ -88,5 +88,31 @@ describe('Blog app', () => {
 
   await expect(page.getByRole('button', { name: 'remove' })).toHaveCount(0)
 })
+
+  test('only the creator can see the remove button', async ({ page, request }) => {
+  await page.getByRole('button', { name: 'create new blog' }).click()
+
+  await page.getByLabel('title').fill('Playwright ownership test')
+  await page.getByLabel('author').fill('Alona')
+  await page.getByLabel('url').fill('https://example.com/playwright-ownership-test')
+
+  await page.getByRole('button', { name: 'create' }).click()
+  await page.getByRole('button', { name: 'logout' }).click()
+
+  await request.post('http://localhost:3003/api/users', {
+    data: {
+      name: 'Another User',
+      username: 'anotheruser',
+      password: 'password'
+    }
+  })
+
+  await page.getByLabel('username').fill('anotheruser')
+  await page.getByLabel('password').fill('password')
+  await page.getByRole('button', { name: 'login' }).click()
+
+  await page.getByRole('button', { name: 'view' }).click()
+  await expect(page.getByRole('button', { name: 'remove' })).toHaveCount(0)
+})
 })
 })
