@@ -53,5 +53,19 @@ describe('Blog app', () => {
 
     await expect(page.getByText('Playwright E2E blog Alona')).toBeVisible()
   })
+
+  test('a blog can be liked', async ({ page }) => {
+  await page.getByRole('button', { name: 'create new blog' }).click()
+
+  await page.getByLabel('title').fill('Playwright like test')
+  await page.getByLabel('author').fill('Alona')
+  await page.getByLabel('url').fill('https://example.com/playwright-like-test')
+
+  await page.getByRole('button', { name: 'create' }).click()
+  await page.getByRole('button', { name: 'view' }).click()
+  await page.getByRole('button', { name: 'like' }).click()
+
+  await expect(page.getByText('1 likes')).toBeVisible()
+  })
 })
 })
