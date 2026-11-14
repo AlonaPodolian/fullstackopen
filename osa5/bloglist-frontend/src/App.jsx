@@ -30,6 +30,50 @@ const FormButton = styled.button`
     background-color: #1565c0;
   }
 `
+const Navigation = styled.nav`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #1976d2;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+  strong {
+    margin-right: auto;
+    color: white;
+    font-size: 1.2rem;
+  }
+
+  a {
+    color: white;
+    font-size: 0.9rem;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  button {
+    padding: 0.5rem 0.75rem;
+    color: white;
+    background: transparent;
+    border: 1px solid white;
+    border-radius: 4px;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+
+  a:hover,
+  button:hover {
+    text-decoration: underline;
+  }
+`
+
+const Notification = styled.p`
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  color: ${props => props.$type === 'error' ? '#b71c1c' : '#1b5e20'};
+  background-color: ${props => props.$type === 'error' ? '#ffebee' : '#e8f5e9'};
+`
 
 const App = () => {
   const navigate = useNavigate()
@@ -162,10 +206,6 @@ const App = () => {
       <h2>blogs</h2>
       {user && <p>{user.name} logged in</p>}
 
-      {successMessage && (
-        <p style={{ color: 'green' }}>{successMessage}</p>
-      )}
-
       <ul>
         {[...blogs]
           .sort((a, b) => b.likes - a.likes)
@@ -197,17 +237,22 @@ const App = () => {
 
   return (
     <div>
-      <nav>
-        <Link to="/">blogs</Link>{' '}
+      <Navigation>
+        <strong>Blog App</strong>
+        <Link to="/">blogs</Link>
         {user === null ? (
           <Link to="/login">login</Link>
         ) : (
           <>
-            <Link to="/create">new blog</Link>{' '}
+            <Link to="/create">new blog</Link>
             <button onClick={handleLogout}>logout</button>
           </>
         )}
-      </nav>
+      </Navigation>
+
+      {successMessage && (
+        <Notification $type="success">{successMessage}</Notification>
+      )}
 
       <Routes>
         <Route path="/" element={blogList()} />
@@ -222,7 +267,7 @@ const App = () => {
             <>
               <h2>log in to application</h2>
               {errorMessage && (
-                <p style={{ color: 'red' }}>{errorMessage}</p>
+                <Notification $type="error">{errorMessage}</Notification>
               )}
               {loginForm()}
             </>
